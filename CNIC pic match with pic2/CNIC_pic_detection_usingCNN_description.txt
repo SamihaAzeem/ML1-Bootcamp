@@ -1,0 +1,63 @@
+📄 Description:
+This Python program detects faces in two images using the face_recognition library. It checks if both images have a face and then compares them to see if it's the same person. It also draws rectangles around detected faces and shows the images using OpenCV.
+
+
+# Importing required libraries
+import face_recognition  # Library used to detect and recognize faces
+import cv2  # OpenCV for handling images (displaying, drawing)
+import numpy as np  # Used for working with arrays
+
+# Function to detect face and get its location and encoding
+def detect_face(img_path):
+    image = face_recognition.load_image_file(img_path)  # Load image from path
+    face_locations = face_recognition.face_locations(image)  # Find where the face is in the image
+    if len(face_locations) == 0:
+        return None, None  # If no face is found, return None
+    face_encodings = face_recognition.face_encodings(image, face_locations)  # Get face data (encoding)
+    return face_encodings, face_locations  # Return both encoding and location
+
+# Function to compare two faces and check if they match
+def match_face(pic1_encoded, pic2_encoded):
+    results = face_recognition.compare_faces([pic1_encoded], pic2_encoded)  # Compare the two face encodings
+    return results[0]  # Return True if they match, False otherwise
+
+# Function to draw a rectangle around detected faces
+def draw_rectangle_face(image, face_locations):
+    for (top, right, bottom, left) in face_locations:
+        # Draw a rectangle using coordinates: top-left to bottom-right
+        cv2.rectangle(image, (left, top), (right, bottom), (0, 50, 255), 3)  # Color is reddish, thickness is 3
+    return image  # Return the image with rectangles drawn
+
+# Paths to the images
+img1_path = 'cnic.png'  # First image (e.g., a CNIC photo)
+img2_path = 'back.jpg'  # Second image to compare
+
+# Detect face in first image
+pic1_encoded, pic1_face_locations = detect_face(img1_path)
+if pic1_encoded is not None:
+    pic1 = cv2.imread(img1_path)  # Read image using OpenCV
+    pic1 = draw_rectangle_face(pic1, pic1_face_locations)  # Draw rectangle around face
+    cv2.imshow('Pic1', pic1)  # Show the image with rectangle
+else:
+    print("No face detected in the first image.")  # If no face was found
+
+# Detect face in second image
+pic2_encoded, pic2_face_locations = detect_face(img2_path)
+if pic2_encoded is not None:
+    pic2 = cv2.imread(img2_path)  # Read second image
+    pic2 = draw_rectangle_face(pic2, pic2_face_locations)  # Draw rectangle around face
+    cv2.imshow('Pic2', pic2)  # Show second image
+else:
+    print("No face detected in the second image.")  # If no face was found
+
+# Compare the faces only if both faces are found
+if pic1_encoded is not None and pic2_encoded is not None:
+    match = match_face(pic1_encoded[0], pic2_encoded[0])  # Compare first face from each image
+    if match:
+        print("Same person")  # If the faces match
+    else:
+        print("Not the same person")  # If the faces don't match
+
+# Wait until a key is pressed and then close all image windows
+cv2.waitKey(0)
+cv2.destroyAllWindows()
